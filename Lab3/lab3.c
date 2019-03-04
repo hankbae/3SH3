@@ -2,47 +2,96 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <math.h>
 #define MAX 20      // maximum size of text file matrix is 20x20
 
 // global variable declaration
-char filename[8] = "test.txt";
+char filename[10] = "input.txt";
 int matrix[MAX][MAX];
 int n;
 sem_t semaphore;
 
 
+
 // function declarations
 void readMatrix(int result[MAX][MAX], const char * filename);
 void printMatrix(void);
+void *shearSort(void * i);
 
 
 
 
 // main function
-void main(void){
-    int i=0, j=0;
+int main(void){
     
+    int rc,i;
+
     readMatrix(matrix,filename);
     printMatrix();
-    sem_init(semaphore,0,1);
+    sem_init(&semaphore,0,1);
     pthread_t thread_id[n];
-    
-    pthread_create(&thread_id[i],);      // INCOMPLETE
 
+
+    for(i = 0; i<n;i++){    // thread init
+        rc = pthread_create(&thread_id[i],NULL,shearSort,(void*)i);
+        if (rc){
+          printf("ERROR; return code from pthread_create() is %d\n", rc);
+          exit(0);
+       }
+    }
+
+    pthread_exit(NULL);
+    return(0);
 }
 
-void *shearsort(int index){
+void *shearSort(void * arg){
+    int index;
+    index = (int) arg;
+    int phase,i,j;
     
-    for(int phase = 1; phase<=ceil(log2(n+1));phase++){        // even phases col sort, odd phases row sort
+    for(phase = 1; phase<=ceil(log2(n))+1;phase++){        // even phases col sort, odd phases row sort
+        sem_wait(&semaphore);
         if(phase%2 == 1){  // odd => row sort
             if (index%2 == 0){
                 //fwd bubble
+                for(i = n-2; i>=0;i--){
+                    for(j = 0; j<=i;j++){
+                        if(matrix[index][j] > matrix[index][j+1]){ // comparison
+                            int tmp = matrix[index][j+1];
+                            matrix[index][j+1] = matrix[index][j];
+                            matrix[index][j] = tmp;
+                        }
+                    }
+                }
+
             }else{
                 //back bubble
+                for(i = n-2; i>=0;i--){
+                    for(j = 0; j<=i;j++){
+                        if(matrix[index][j] < matrix[index][j+1]){ // comparison
+                            int tmp = matrix[index][j+1];
+                            matrix[index][j+1] = matrix[index][j];
+                            matrix[index][j] = tmp;
+                            
+                        }
+                    }
+                }
             }
         }else{              // even => col sort
             //down bubble
+            for(i = n-2; i>=0;i--){
+                    for(j = 0; j<=i;j++){
+                        if(matrix[j][index] > matrix[j+1][index]){ // comparison
+                            int tmp = matrix[j+1][index];
+                            matrix[j+1][index] = matrix[j][index];
+                            matrix[j][index] = tmp;
+                        }
+                    }
+                }
         }
+        printf("phase %d | index %d\n",phase,index);
+        printMatrix();
+        sem_post(&semaphore);
     }
     pthread_exit(NULL);
 }
@@ -95,4 +144,6 @@ void printMatrix(void){
         j=0;
         printf("\n");
     }
+
+    printf("\n\n");
 } 
