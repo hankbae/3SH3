@@ -49,7 +49,7 @@ void *shearSort(void * arg){
     index = (int) arg;
     int phase,i,j;
     
-    for(phase = 1; phase<=ceil(log2(n))+1;phase++){        // even phases col sort, odd phases row sort
+    for(phase = 1; phase<=ceil(log2(n^2))+2;phase++){        // even phases col sort, odd phases row sort
         sem_wait(&semaphore);
         if(phase%2 == 1){  // odd => row sort
             if (index%2 == 0){
