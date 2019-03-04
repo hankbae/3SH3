@@ -1,9 +1,53 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <semaphore.h>
 #define MAX 20      // maximum size of text file matrix is 20x20
 
-int readMatrix(int result[MAX][MAX], const char * filename){
+// global variable declaration
+char filename[8] = "test.txt";
+int matrix[MAX][MAX];
+int n;
+sem_t semaphore;
+
+
+// function declarations
+void readMatrix(int result[MAX][MAX], const char * filename);
+void printMatrix(void);
+
+
+
+
+// main function
+void main(void){
+    int i=0, j=0;
+    
+    readMatrix(matrix,filename);
+    printMatrix();
+    sem_init(semaphore,0,1);
+    pthread_t thread_id[n];
+    
+    pthread_create(&thread_id[i],);      // INCOMPLETE
+
+}
+
+void *shearsort(int index){
+    
+    for(int phase = 1; phase<=ceil(log2(n+1));phase++){        // even phases col sort, odd phases row sort
+        if(phase%2 == 1){  // odd => row sort
+            if (index%2 == 0){
+                //fwd bubble
+            }else{
+                //back bubble
+            }
+        }else{              // even => col sort
+            //down bubble
+        }
+    }
+    pthread_exit(NULL);
+}
+
+void readMatrix(int result[MAX][MAX], const char * filename){
     // takes in an empty matrix and file name.
     // the values in the file are filled out into the empty matrix
     // the number of rows is returned 
@@ -35,10 +79,10 @@ int readMatrix(int result[MAX][MAX], const char * filename){
         
     }
     fclose(fp);
-    return (j);
+    n=j;
 }
 
-void printMatrix(int matrix[MAX][MAX],int n){
+void printMatrix(void){
     // displays matrix
     int i=0, j=0;
 
@@ -51,16 +95,4 @@ void printMatrix(int matrix[MAX][MAX],int n){
         j=0;
         printf("\n");
     }
-}
-
-void main(void){
-    char filename[8] = "test.txt";
-    int matrix[MAX][MAX];
-    int i=0, j=0,n;
-
-    n = readMatrix(matrix,filename);
-    printMatrix(matrix,n);
-
-    
-
-}
+} 
