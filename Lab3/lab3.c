@@ -9,7 +9,11 @@
 char filename[10] = "input.txt";
 int matrix[MAX][MAX];
 int n;
+int thread_num = 0;
 sem_t semaphore;
+pthread_cond_t condition;   // only go to next phase after all threads are complete same phase
+pthread_mutex_t mutex;
+
 
 
 
@@ -28,9 +32,11 @@ int main(void){
 
     readMatrix(matrix,filename);
     printMatrix();
-    sem_init(&semaphore,0,1);
+    //sem_init(&semaphore,0,1);
     pthread_t thread_id[n];
 
+    pthread_cond_init(&condition,NULL);
+    pthread_mutex_init(&mutex,NULL);
 
     for(i = 0; i<n;i++){    // thread init
         rc = pthread_create(&thread_id[i],NULL,shearSort,(void*)i);
@@ -41,6 +47,7 @@ int main(void){
     }
 
     pthread_exit(NULL);
+    pthread_mutex_destroy(&mutex);
     return(0);
 }
 
@@ -48,9 +55,11 @@ void *shearSort(void * arg){
     int index;
     index = (int) arg;
     int phase,i,j;
+
+    
     
     for(phase = 1; phase<=ceil(log2(n^2))+2;phase++){        // even phases col sort, odd phases row sort
-        sem_wait(&semaphore);
+        pthread_mutex_lock(&mutex);
         if(phase%2 == 1){  // odd => row sort
             if (index%2 == 0){
                 //fwd bubble
@@ -89,9 +98,17 @@ void *shearSort(void * arg){
                     }
                 }
         }
+        thread_num++;
+        if (thread_num >= n){
+            thread_num = 0;
+            pthread_cond_broadcast(&condition);
+        }else{
+            pthread_cond_wait(&condition,&mutex);
+        }
+
         printf("phase %d | index %d\n",phase,index);
         printMatrix();
-        sem_post(&semaphore);
+        pthread_mutex_unlock(&mutex);
     }
     pthread_exit(NULL);
 }
