@@ -11,8 +11,8 @@ int matrix[MAX][MAX];
 int n;
 int thread_num = 0;
 sem_t semaphore;
-pthread_cond_t condition;   // only go to next phase after all threads are complete same phase
-pthread_mutex_t mutex;
+// pthread_cond_t condition;   // only go to next phase after all threads are complete same phase
+// pthread_mutex_t mutex;
 
 
 
@@ -32,11 +32,11 @@ int main(void){
 
     readMatrix(matrix,filename);
     printMatrix();
-    //sem_init(&semaphore,0,1);
+    sem_init(&semaphore,0,1);
     pthread_t thread_id[n];
 
-    pthread_cond_init(&condition,NULL);
-    pthread_mutex_init(&mutex,NULL);
+    // pthread_cond_init(&condition,NULL);
+    // pthread_mutex_init(&mutex,NULL);
 
     for(i = 0; i<n;i++){    // thread init
         rc = pthread_create(&thread_id[i],NULL,shearSort,(void*)i);
@@ -47,7 +47,7 @@ int main(void){
     }
 
     pthread_exit(NULL);
-    pthread_mutex_destroy(&mutex);
+    // pthread_mutex_destroy(&mutex);
     return(0);
 }
 
@@ -59,7 +59,8 @@ void *shearSort(void * arg){
     
     
     for(phase = 1; phase<=ceil(log2(n^2))+2;phase++){        // even phases col sort, odd phases row sort
-        pthread_mutex_lock(&mutex);
+        //pthread_mutex_lock(&mutex);
+        sem_wait(&semaphore);
         if(phase%2 == 1){  // odd => row sort
             if (index%2 == 0){
                 //fwd bubble
@@ -98,17 +99,18 @@ void *shearSort(void * arg){
                     }
                 }
         }
-        thread_num++;
-        if (thread_num >= n){
-            thread_num = 0;
-            pthread_cond_broadcast(&condition);
-        }else{
-            pthread_cond_wait(&condition,&mutex);
-        }
+        // thread_num++;
+        // if (thread_num >= n){
+        //     thread_num = 0;
+        //     pthread_cond_broadcast(&condition);
+        // }else{
+        //     pthread_cond_wait(&condition,&mutex);
+        // }
 
         printf("phase %d | index %d\n",phase,index);
         printMatrix();
-        pthread_mutex_unlock(&mutex);
+        // pthread_mutex_unlock(&mutex);
+        sem_post(&semaphore);
     }
     pthread_exit(NULL);
 }
