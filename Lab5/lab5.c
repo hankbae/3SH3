@@ -11,6 +11,7 @@
 
 #define ERR(error) perror(error); exit(0);
 
+
 struct stat buffer;
 
 void fileAttr(const char * filename)
@@ -53,29 +54,21 @@ void folderTraverse(const char * str)
 {
     DIR * directory;
     struct dirent * dirp;
-    if ((directory=opendir(str)) == NULL)
-    {
-        printf("fail\n");
-        return;
-    }
+    if ((directory=opendir(str)) == NULL) {return;}
     while ((dirp = readdir(directory)) != NULL)
     {
         if(strcmp(dirp->d_name,".")!=0 && strcmp(dirp->d_name,"..")!=0)
-        if(dirp->d_type == DT_DIR)
         {
-            char dir[64];
-            strcpy(dir,str);
-            strcat(dir,"/");
-            strcat(dir,dirp->d_name);
-            strcat(dir,"/..");
-            printf("%s\t%s\n",dirp->d_name,dir);
-            chdir(dir);
-            folderTraverse(dirp->d_name);
-            chdir("..");
-        }
-        else
-        {
-            fileAttr(dirp->d_name);
+            if(dirp->d_type == DT_DIR)
+            {
+                chdir(str);
+                folderTraverse(dirp->d_name);
+                chdir("..");
+            }
+            else
+            {
+                fileAttr(dirp->d_name);
+            }
         }
         
     }
